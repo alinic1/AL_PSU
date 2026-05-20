@@ -1,0 +1,84 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+
+
+def funkcija(x):
+    return np.sin(x)
+
+
+x = np.linspace(1, 10, 100)
+y = funkcija(x) + np.random.normal(0, 0.2, len(x))
+
+x = x.reshape(-1,1)
+y = y.reshape(-1,1)
+
+stupnjevi = [2, 6, 15]
+
+
+def izracunaj(train_velicina):
+
+    indeksi = np.random.permutation(len(x))
+
+    train = indeksi[:train_velicina]
+    test = indeksi[train_velicina:]
+
+    x_train = x[train]
+    y_train = y[train]
+
+    x_test = x[test]
+    y_test = y[test]
+
+    MSEtrain = []
+    MSEtest = []
+
+    for d in stupnjevi:
+        poly = PolynomialFeatures(degree=d)
+        
+        xtr = poly.fit_transform(x_train)
+        xte = poly.transform(x_test)
+        
+        model = LinearRegression()
+        model.fit(xtr, y_train)
+        
+        ytr_pred = model.predict(xtr)
+        yte_pred = model.predict(xte)
+        
+        MSEtrain.append(mean_squared_error(y_train, ytr_pred))
+        MSEtest.append(mean_squared_error(y_test, yte_pred))
+
+    print("===================================")
+    print("Broj train podataka:", train_velicina)
+    print("MSEtrain:", MSEtrain)
+    print("MSEtest:", MSEtest)
+
+
+izracunaj(20)
+izracunaj(70)
+izracunaj(80)
+
+x_lin = np.linspace(1, 10, 100).reshape(-1,1)
+y_true = funkcija(x_lin)
+
+plt.scatter(x, y, label="podaci")
+
+for d in stupnjevi:
+    poly = PolynomialFeatures(degree=d)
+    x_poly = poly.fit_transform(x)
+    
+    model = LinearRegression()
+    model.fit(x_poly, y)
+    
+    y_pred = model.predict(x_poly)
+    
+    plt.plot(x, y_pred, label=f"degree {d}")
+
+plt.plot(x_lin, y_true, label="prava funkcija")
+
+plt.legend()
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Usporedba modela")
+plt.show()
